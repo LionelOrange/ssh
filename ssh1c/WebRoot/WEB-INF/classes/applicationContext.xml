@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-3.2.xsd
+        http://www.springframework.org/schema/aop 
+        http://www.springframework.org/schema/aop/spring-aop-3.2.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx-3.2.xsd">
+	<bean id="sessionFactory" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+		<property name="configLocation">
+			<value>classpath:hibernate.cfg.xml</value>
+		</property>
+	</bean>
+	<bean id="transactionManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	<aop:config>
+		<aop:pointcut expression="execution(* com.pro.service..*.*(..))" id="all"/>
+		<aop:advisor advice-ref="ds" pointcut-ref="all"/>
+	</aop:config>
+	<tx:advice id="ds" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="*" propagation="REQUIRED"/>
+		</tx:attributes>
+	</tx:advice>
+	<bean id="userDao" class="com.pro.dao.UserDaoImpl">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	<bean id="userService" class="com.pro.service.UserServiceDaoImpl">
+		<property name="baseDao" ref="userDao"></property>
+	</bean>
+	<!--  scope="prototype" 会在该类型的对象被请求时创建一个新的action对象。
+	如果没有配置scope=prototype则添加的时候不会新建一个action，他任然会保留上次访问的过记录的信息。 -->
+	<bean id="userAction" class="com.pro.dao.UserAction" scope="prototype">
+		<property name="serviceDao" ref="userService"></property>
+	</bean>
+</beans>
